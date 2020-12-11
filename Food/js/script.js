@@ -2,7 +2,6 @@
 
 window.addEventListener('DOMContentLoaded', () => {
 
-  // ===============================================================
   // Tabs
 
   const tabs = document.querySelectorAll('.tabheader__item'),
@@ -44,7 +43,6 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 
 
-  // ===============================================================
   // Timer
   /* 
     Алгоритм реализации:
@@ -106,5 +104,62 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   setClock('.timer', deadLine);
+
+
+  // Modal
+
+  /*
+    Алгоритм реализации:
+    1) Вешаем дата-атибуты на тригеры (кнопки, вызывающие модальное окно)
+    и кнопкузакрытия окна
+    2) 
+  */
+
+  const modalTrigger = document.querySelectorAll('[data-modal]'),
+    modal = document.querySelector('.modal'),
+    modalCloseBtn = document.querySelector('[data-close]');
+
+  function openModal() {
+    modal.classList.toggle('show');
+    document.body.style.overflow = 'hidden';
+
+    clearTimeout(modalTimerId);
+  }
+
+  function closeModal() {
+    modal.classList.toggle('show');
+    document.body.style.overflow = '';
+  }
+
+  modalTrigger.forEach(btn => {
+    btn.addEventListener('click', openModal);
+  });
+
+  modalCloseBtn.addEventListener('click', closeModal);
+
+  modal.addEventListener('click', (e) => {
+    const target = e.target;
+
+    if (target && target == modal) {
+      closeModal();
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.code == 'Escape' && modal.classList.contains('show')) {
+      closeModal();
+    }
+  });
+
+  const modalTimerId = setTimeout(openModal, 15000);
+
+  function showModalByScroll() {
+    if (window.scrollY + document.documentElement.clientHeight >= document.documentElement.scrollHeight) {
+      openModal();
+      window.removeEventListener('scroll', showModalByScroll);
+    }
+  }
+
+  window.addEventListener('scroll', showModalByScroll);
   
 });

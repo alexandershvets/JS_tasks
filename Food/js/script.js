@@ -241,7 +241,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
 
   // forms
-  // XMLHttpRequest
   // Отправка данных на сервер
 
   const forms = document.querySelectorAll('form');
@@ -266,42 +265,105 @@ window.addEventListener('DOMContentLoaded', () => {
       `;
       form.insertAdjacentElement('afterend', statusMessage);
       
-      const request = new XMLHttpRequest();
-      request.open('POST', 'server.php');
-      
-      // 1) Вариант без JSON
-      // START
-      // const formData = new FormData(form);
-      // request.send(formData);
-      // END
+      // ============================
+      // XMLHttpRerquest
 
-      // 2) Вариант с JSON
-      // (PHP должен декодировать объект JSON, так как он не умеет с ним работать)
-      // START
-      request.setRequestHeader('content-type', 'application/json');
+      // const request = new XMLHttpRequest();
+      // request.open('POST', 'server.php');
+      
+      // // 1) Вариант без JSON
+      // // START
+      // // const formData = new FormData(form);
+      // // request.send(formData);
+      // // END
+
+      // // 2) Вариант с JSON
+      // // (PHP должен декодировать объект JSON, так как он не умеет с ним работать)
+      // // START
+      // request.setRequestHeader('content-type', 'application/json');
+      // const formData = new FormData(form);
+
+      // const object = {};
+
+      // formData.forEach((value, key) => {
+      //   object[key] = value;
+      // });
+
+      // const json = JSON.stringify(object);
+      
+      // request.send(json);
+      // // END
+
+      // request.addEventListener('load', () => {
+      //   if (request.status === 200) {
+      //     console.log(request.response);
+      //     showThanksModal(message.success);
+      //     form.reset();
+      //     statusMessage.remove();
+      //   } else {
+      //     showThanksModal(message.failure);
+      //   }
+      // });
+
+      // ============================
+      // Fetch
+
       const formData = new FormData(form);
 
+      // ================
+      // formData
+      // START
+      // fetch('server.php', {
+      //   method: 'POST',
+      //   body: formData
+      // })
+      // .then((data) => {
+      //   return data.text();
+      // })
+      // .then(data => {
+      //   console.log(data);
+      //   showThanksModal(message.success);
+      //   statusMessage.remove();
+      // })
+      // .catch(() => {
+      //   showThanksModal(message.failure);
+      // })
+      // .finally(() => {
+      //   form.reset();
+      // });
+      // START
+
+      // ================
+      // JSON
+      // START
       const object = {};
 
       formData.forEach((value, key) => {
         object[key] = value;
       });
 
-      const json = JSON.stringify(object);
-      
-      request.send(json);
-      // END
-
-      request.addEventListener('load', () => {
-        if (request.status === 200) {
-          console.log(request.response);
-          showThanksModal(message.success);
-          form.reset();
-          statusMessage.remove();
-        } else {
-          showThanksModal(message.failure);
+      fetch('server.php', {
+        method: 'POST',
+        body: JSON.stringify(object),
+        headers: {
+          'Content-type': 'application/json'
         }
+      })
+      .then((data) => {
+        return data.text();
+      })
+      .then(data => {
+        console.log(data);
+        showThanksModal(message.success);
+        statusMessage.remove();
+      })
+      .catch(() => {
+        showThanksModal(message.failure);
+      })
+      .finally(() => {
+        form.reset();
       });
+      // END
     });
   }
 

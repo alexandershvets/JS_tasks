@@ -468,42 +468,196 @@ window.addEventListener('DOMContentLoaded', () => {
       Внутри нее вызывать функцию показа слайдов, ей передается индекс + или - число
   */
 
-  const slides = document.querySelectorAll('.offer__slide'),
-    prev = document.querySelector('.offer__slider-prev'),
-    next = document.querySelector('.offer__slider-next'),
-    total = document.querySelector('#total'),
-    current = document.querySelector('#current');
+  // const slides = document.querySelectorAll('.offer__slide'),
+  //   prev = document.querySelector('.offer__slider-prev'),
+  //   next = document.querySelector('.offer__slider-next'),
+  //   total = document.querySelector('#total'),
+  //   current = document.querySelector('#current');
 
-  let slideIndex = 1;
+  // let slideIndex = 1;
 
-  showSlides(slideIndex);
+  // showSlides(slideIndex);
 
-  total.textContent = (slides.length < 10) ? `0${slides.length}` : slides.length;
+  // total.textContent = (slides.length < 10) ? `0${slides.length}` : slides.length;
 
-  function showSlides(n) {
-    if (n > slides.length) {
-      slideIndex = 1;
-    }
+  // function showSlides(n) {
+  //   if (n > slides.length) {
+  //     slideIndex = 1;
+  //   }
 
-    if (n < 1) {
-      slideIndex = slides.length;
-    }
+  //   if (n < 1) {
+  //     slideIndex = slides.length;
+  //   }
 
-    slides.forEach(item => item.classList.add('hide'));
-    slides[slideIndex - 1].classList.remove('hide');
-    slides[slideIndex - 1].classList.add('show');
+  //   slides.forEach(item => item.classList.add('hide'));
+  //   slides[slideIndex - 1].classList.remove('hide');
+  //   slides[slideIndex - 1].classList.add('show');
 
-    current.textContent = (slideIndex < 10) ? `0${slideIndex}` : slideIndex;
-  }
+  //   current.textContent = (slideIndex < 10) ? `0${slideIndex}` : slideIndex;
+  // }
 
-  function plusSlides(n) {
-    showSlides(slideIndex += n);
-  }
+  // function plusSlides(n) {
+  //   showSlides(slideIndex += n);
+  // }
 
-  prev.addEventListener('click', () => plusSlides(-1));
-  next.addEventListener('click', () => plusSlides(1));
+  // prev.addEventListener('click', () => plusSlides(-1));
+  // next.addEventListener('click', () => plusSlides(1));
 
   // ===============
-  // Вариант 2
-  
+  // Вариант 2 (карусель)
+  /* 
+    Обертке всего сладера задать свойство overflow: hidden
+      Это значит что все, что не подходит под ширину блока,
+      оно будет скрыто и невидимо для обычного пользователя.
+    Создадим обертку для слайдов
+      Соответственно, этот блок, который оборачивает все слайды,
+      займет столько место, сколько слайдов в ширину.
+    При клике вперед/назад мы будем не скрывать/показывать слайды,
+    а передвигать по отношению к главной обертке слайда,
+    при помощи свойства transform к обертке слайдов.
+  */
+
+  const slider = document.querySelector('.offer__slider'),
+    slidesWrapper = slider.querySelector('.offer__slider-wrapper'),
+    slidesField = slider.querySelector('.offer__slider-inner'),
+    slides = slider.querySelectorAll('.offer__slide'),
+    prev = slider.querySelector('.offer__slider-prev'),
+    next = slider.querySelector('.offer__slider-next'),
+    total = slider.querySelector('#total'),
+    current = slider.querySelector('#current');
+
+  // Установим индекс активного слайда
+  let slideIndex = 1;
+
+  // Зададим переменную с отступом, для передвижения слайдеров
+  // чтобы знать, на сколько отступили в право/влево
+  let offset = 0;
+
+  // Установим ширину главной обертки слайдера
+  const widthWrapper = getComputedStyle(slidesWrapper).width;
+
+  // Для показа индесов сладов и их общего кол-ва
+  if (slides.length < 10) {
+    total.textContent = `0${slides.length}`;
+  } else {
+    total.textContent = slides.length;
+  }
+
+  if (slideIndex < 10) {
+    current.textContent = `0${slideIndex}`;
+  } else {
+    current.textContent = slideIndex;
+  }
+
+  // Вычислим ширину обертки слайдов
+  slidesField.style.width = 100 * slides.length + '%';
+
+  // Выставим блоки слады в строку при помощи флексов (это делается в стилях!!!)
+  slidesField.style.display = 'flex';
+  slidesField.style.transition = 'all .5s ease';
+  // Зададим главной обертке слайдера свойство owerflow: hidden (это делается в стилях!!!)
+  slidesWrapper.style.overflow = 'hidden';
+
+  // Устонавливаем каждому слайду одинаковую ширину
+  slides.forEach(slide => {
+    slide.style.width = widthWrapper;
+  });
+
+  // dots
+  // Позиционируем слайдер
+  slider.style.position = 'relative';
+
+  // Создаем обертку для точек
+  const dots = document.createElement('ol'),
+    dotsArr = [];
+
+  dots.classList.add('carousel-dots');
+  slider.append(dots);
+
+  // При помощи цикла создаем точки с атрибутами и классом,
+  // аппендим их в dots обертку
+  for (let i = 0; i < slides.length; i++) {
+    const dot = document.createElement('li');
+    dot.setAttribute('data-slide-toggle', i + 1);
+    dot.classList.add('dot');
+    if (dot.dataset.slideToggle == slideIndex) {
+      dot.classList.add('active');
+    }
+    dots.append(dot);
+    dotsArr.push(dot);
+  }
+
+  function makeDotActive() {
+    dotsArr.forEach(dot => dot.classList.remove('active'));
+    dotsArr[slideIndex - 1].classList.add('active');
+  }
+
+  function showCurrentIndexSlide() {
+    if (slideIndex < 10) {
+      current.textContent = `0${slideIndex}`;
+    } else {
+      current.textContent = slideIndex;
+    }
+  }
+
+  // Клики по кнопке влево
+  prev.addEventListener('click', () => {
+    // Предусмотрим бесконечный вариант передвижения слайдов
+    if (offset === 0) {
+      offset = +widthWrapper.slice(0, widthWrapper.length - 2) * (slides.length - 1);
+    } else {
+      offset -= +widthWrapper.slice(0, widthWrapper.length - 2);
+    }
+
+    // Когда нажимаем кнопку, нужно сдвинуть слайд вперед
+    slidesField.style.transform = `translateX(-${offset}px)`;
+
+    // Работа с щетчиком
+    if (slideIndex == 1) {
+      slideIndex = slides.length;
+    } else {
+      slideIndex--;
+    }
+
+    showCurrentIndexSlide();
+    makeDotActive();
+  });
+
+  // Клики по кнопке вправо
+  next.addEventListener('click', () => {
+    // Предусмотрим бесконечный вариант передвижения слайдов
+    if (offset === +widthWrapper.slice(0, widthWrapper.length - 2) * (slides.length - 1)) {
+      offset = 0;
+    } else {
+      offset += +widthWrapper.slice(0, widthWrapper.length - 2);
+    }
+
+    // Когда нажимаем кнопку, нужно сдвинуть слайд вперед
+    slidesField.style.transform = `translateX(-${offset}px)`;
+
+    // Работа с щетчиком
+    if (slideIndex == slides.length) {
+      slideIndex = 1;
+    } else {
+      slideIndex++;
+    }
+
+    showCurrentIndexSlide();
+    makeDotActive();
+  });
+
+  // Клики по точкам
+  dotsArr.forEach(dot => {
+    dot.addEventListener('click', (e) => {
+      const slideTo = e.target.getAttribute('data-slide-toggle');
+
+      slideIndex = slideTo;
+      offset = +widthWrapper.slice(0, widthWrapper.length - 2) * (slideTo - 1);
+      slidesField.style.transform = `translateX(-${offset}px)`;
+
+      showCurrentIndexSlide();
+      makeDotActive();
+    });
+  });
+
 });
